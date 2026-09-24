@@ -1,0 +1,26 @@
+# Lokalne ustawienia i sekrety
+.env
+.env.*
+!.env.*.example
+# Buildy i linkowane źródła pozostają poza repozytorium
+**/build/
+**/build-dev/
+**/build-prod/
+**/sources/
+# Dane trwałe, certyfikaty i kopie
+**/data/
+**/backups/
+**/certbot/
+**/certs/
+*.pem
+*.key
+*.sql
+*.dump
+*.log
+
+# Link do repozytorium panelu (również gdy jest dowiązaniem symbolicznym)
+/odnrewers.pl/panel/sources
+
+# Instalatory, archiwa i pliki WordPressa obu srodowisk
+/odnrewers.pl/wordpress/dev/www/
+/odnrewers.pl/wordpress/prod/www/

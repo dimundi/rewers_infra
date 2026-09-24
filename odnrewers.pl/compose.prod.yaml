@@ -1,0 +1,53 @@
+# Szkielet PROD: bez publicznych portów do czasu ustalenia routingu i HTTPS.
+name: odnrewer-pl-prod
+services:
+  panel:
+    restart: unless-stopped
+    volumes:
+      - type: bind
+        source: ${PROD_PANEL_BUILD_DIR:?Ustaw PROD_PANEL_BUILD_DIR w .env.prod}
+        target: /srv/panel/szkolenia
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./panel/prod
+        target: /etc/nginx/conf.d
+        read_only: true
+        bind:
+          create_host_path: false
+  proxy:
+    restart: unless-stopped
+    volumes:
+      - type: bind
+        source: ./nginx/prod
+        target: /etc/nginx/conf.d
+        read_only: true
+        bind:
+          create_host_path: false
+  wordpress:
+    restart: unless-stopped
+    networks:
+      - wordpress_egress
+    volumes:
+      - type: bind
+        source: ./wordpress/prod/www
+        target: /var/www/html
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./wordpress/prod/php.ini
+        target: /usr/local/etc/php/conf.d/zz-rewers.ini
+        read_only: true
+        bind:
+          create_host_path: false
+  wordpress-db:
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: ${PROD_WP_DB_NAME:?Ustaw PROD_WP_DB_NAME w .env.prod}
+      MARIADB_USER: ${PROD_WP_DB_USER:?Ustaw PROD_WP_DB_USER w .env.prod}
+      MARIADB_PASSWORD: ${PROD_WP_DB_PASSWORD:?Ustaw PROD_WP_DB_PASSWORD w .env.prod}
+      MARIADB_ROOT_PASSWORD: ${PROD_WP_DB_ROOT_PASSWORD:?Ustaw PROD_WP_DB_ROOT_PASSWORD w .env.prod}
+networks:
+  wordpress_egress: {}
+

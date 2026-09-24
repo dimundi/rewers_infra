@@ -1,0 +1,45 @@
+name: odnrewer-pl-dev
+services:
+  panel:
+    volumes:
+      - type: bind
+        source: ${DEV_PANEL_BUILD_DIR:?Ustaw DEV_PANEL_BUILD_DIR w .env.dev}
+        target: /srv/panel/szkolenia
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./panel/dev
+        target: /etc/nginx/conf.d
+        read_only: true
+        bind:
+          create_host_path: false
+  proxy:
+    ports:
+      - "127.0.0.1:${DEV_HTTP_PORT:-8080}:80"
+    volumes:
+      - type: bind
+        source: ./nginx/dev
+        target: /etc/nginx/conf.d
+        read_only: true
+        bind:
+          create_host_path: false
+  wordpress:
+    volumes:
+      - type: bind
+        source: ./wordpress/dev/www
+        target: /var/www/html
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./wordpress/dev/php.ini
+        target: /usr/local/etc/php/conf.d/zz-rewers.ini
+        read_only: true
+        bind:
+          create_host_path: false
+  wordpress-db:
+    environment:
+      MARIADB_DATABASE: ${DEV_WP_DB_NAME:?Ustaw DEV_WP_DB_NAME w .env.dev}
+      MARIADB_USER: ${DEV_WP_DB_USER:?Ustaw DEV_WP_DB_USER w .env.dev}
+      MARIADB_PASSWORD: ${DEV_WP_DB_PASSWORD:?Ustaw DEV_WP_DB_PASSWORD w .env.dev}
+      MARIADB_ROOT_PASSWORD: ${DEV_WP_DB_ROOT_PASSWORD:?Ustaw DEV_WP_DB_ROOT_PASSWORD w .env.dev}

@@ -1,0 +1,87 @@
+# Wspólna konfiguracja. Używaj razem z compose.dev.yaml lub compose.prod.yaml.
+services:
+  panel:
+    image: nginx:1.28-alpine
+    command: ["/bin/sh", "-c", "test -s /srv/panel/szkolenia/index.html || { echo 'Brak gotowego buildu panelu (index.html).' >&2; exit 1; }; exec nginx -g 'daemon off;'"]
+    networks:
+      - frontend
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/szkolenia/index.html"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+  proxy:
+    image: nginx:1.28-alpine
+    depends_on:
+      wordpress:
+        condition: service_healthy
+      panel:
+        condition: service_healthy
+    networks:
+      - frontend
+      - wordpress_private
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+  wordpress:
+    image: wordpress:php8.3-apache
+    # Pomijamy automatyczne kopiowanie WordPressa i generowanie wp-config.php.
+    # Użytkownik dostarcza instalator i archiwum do pustego katalogu www.
+    entrypoint: ["apache2-foreground"]
+    command: []
+    depends_on:
+      wordpress-db:
+        condition: service_healthy
+    networks:
+      - wordpress_private
+      - wordpress_database
+    healthcheck:
+      test: ["CMD", "php", "-r", "exit(@fsockopen('127.0.0.1', 80) ? 0 : 1);"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 15s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+  wordpress-db:
+    image: mariadb:11.4
+    volumes:
+      - wordpress_db:/var/lib/mysql
+    networks:
+      - wordpress_database
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+networks:
+  frontend: {}
+  wordpress_private:
+    internal: true
+  wordpress_database:
+    internal: true
+volumes:
+  wordpress_db: {}
+
