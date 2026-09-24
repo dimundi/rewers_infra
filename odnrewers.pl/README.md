@@ -117,7 +117,7 @@ Brak folderu buildu powoduje błąd montowania zamiast utworzenia pustego katalo
 
 ## PROD — status przygotowania
 
-PROD jest na razie szkieletem, a nie gotowym wdrożeniem. Proxy zwraca 503 dla aplikacji i nie publikuje portów na hoście. Przed uruchomieniem produkcyjnym trzeba ustalić routing, skonfigurować HTTPS i certyfikaty oraz przygotować build PROD i docelowe API.
+PROD jest w przygotowaniu. Docelowy routing HTTPS i przekierowania domen zapisano w konfiguracji Nginx; szczegóły zawiera [PRODUCTION.md](PRODUCTION.md). Compose PROD publikuje porty 80/443 i montuje certyfikaty; start HTTPS wymaga obu wystawionych certyfikatów. Przed uruchomieniem trzeba przygotować HTTP do wydania certyfikatu, podłączyć HTTPS oraz przygotować dane WordPressa i build panelu PROD z docelowym API.
 
 W `.env.prod` utworzonym z `.env.prod.example` należy wskazać `PROD_PANEL_BUILD_DIR` — osobny folder zawierający build PROD na serwerze. Nie używaj katalogu buildu DEV.
 
@@ -172,3 +172,7 @@ Planowany zakres:
 Skrypt przygotuje serwer; wdrożenie aplikacji i odtworzenie danych pozostaną oddzielnym krokiem. Będzie można uruchomić go przez SSH po utworzeniu instancji. Docelowo rozważymy też użycie go jako skryptu poinstalacyjnego OVHcloud.
 
 Status: zaplanowany — skrypt nie został jeszcze utworzony ani uruchomiony. Szczegóły implementacji ustalimy przed jego przygotowaniem. Skrypt nie będzie zawierał haseł ani kluczy prywatnych.
+
+## Wysyłka plików PROD przez SFTP
+
+Ręczną wysyłkę przez WinSCP, listę plików i katalogi docelowe opisano w [DEPLOY.md](DEPLOY.md). Serwer nie wymaga klonowania repozytorium.

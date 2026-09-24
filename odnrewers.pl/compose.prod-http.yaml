@@ -1,0 +1,19 @@
+# Tylko start PROD przez HTTP; dodaj jako trzeci plik po compose.prod.yaml.
+# Ten sam projekt i dane PROD. Po wystawieniu certyfikatow przechodzimy na HTTPS.
+services:
+  proxy:
+    ports: !override
+      - "80:80"
+    volumes:
+      - type: bind
+        source: ./nginx/prod-http
+        target: /etc/nginx/conf.d
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./certbot/www
+        target: /var/www/certbot
+        read_only: true
+        bind:
+          create_host_path: false

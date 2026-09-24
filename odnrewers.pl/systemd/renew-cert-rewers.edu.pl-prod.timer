@@ -1,0 +1,11 @@
+[Unit]
+Description=Check PROD certificate for rewers.edu.pl twice daily
+
+[Timer]
+OnCalendar=*-*-* 02,14:00:00
+RandomizedDelaySec=15min
+Persistent=true
+Unit=renew-cert-rewers.edu.pl-prod.service
+
+[Install]
+WantedBy=timers.target

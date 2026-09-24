@@ -24,3 +24,28 @@
 # Instalatory, archiwa i pliki WordPressa obu srodowisk
 /odnrewers.pl/wordpress/dev/www/
 /odnrewers.pl/wordpress/prod/www/
+# Dodatkowe formaty kluczy prywatnych i magazynow certyfikatow
+*.ppk
+*.p12
+*.pfx
+id_rsa
+id_dsa
+id_ecdsa
+id_ed25519
+
+# Paczki migracyjne, archiwa wdrozen i skompresowane zrzuty baz
+*.zip
+*.daf
+*.tar
+*.tar.gz
+*.tgz
+*.7z
+*.sql.*
+*.dump.*
+
+# Kopie robocze edytorow i lokalne ustawienia wysylki
+*.bak
+*.swp
+*.swo
+*~
+/odnrewers.pl/deploy-prod.local.bat

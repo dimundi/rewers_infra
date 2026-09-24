@@ -1,0 +1,11 @@
+[Unit]
+Description=Check PROD certificate for odnrewers.pl twice daily
+
+[Timer]
+OnCalendar=*-*-* 00,12:00:00
+RandomizedDelaySec=15min
+Persistent=true
+Unit=renew-cert-odnrewers.pl-prod.service
+
+[Install]
+WantedBy=timers.target
