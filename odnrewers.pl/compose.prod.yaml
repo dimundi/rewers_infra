@@ -3,6 +3,8 @@ name: odnrewer-pl-prod
 services:
   panel:
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/index.html"]
     volumes:
       - type: bind
         source: ${PROD_PANEL_BUILD_DIR:?Ustaw PROD_PANEL_BUILD_DIR w .env.prod}
@@ -65,4 +67,3 @@ services:
       MARIADB_ROOT_PASSWORD: ${PROD_WP_DB_ROOT_PASSWORD:?Ustaw PROD_WP_DB_ROOT_PASSWORD w .env.prod}
 networks:
   wordpress_egress: {}
-

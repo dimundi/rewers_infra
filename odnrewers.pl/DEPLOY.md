@@ -1,5 +1,8 @@
 # Wysyłka PROD przez SFTP
 
+Przeniesienie panelu na `panel.odnrewers.pl` i przekierowanie starych adresów
+`/szkolenia/` opisuje [PANEL-DOMAIN-PROD.md](PANEL-DOMAIN-PROD.md).
+
 Pliki przesyłamy ręcznie przez WinSCP (SFTP) do `/home/docker/odnrewers/`. Serwer nie wymaga klonowania repozytorium.
 
 Połączenie: host `51.68.147.102`, port `22`, użytkownik `docker`. Klucz prywatny pozostaje na komputerze; nie przesyłamy go na serwer.

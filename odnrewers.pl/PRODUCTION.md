@@ -4,7 +4,7 @@
 
 - Serwer: OVH Public Cloud b2-7, Debian 13, IP `51.68.147.102`.
 - Dostęp SSH/SFTP: użytkownik `docker`; pliki w `/home/docker/odnrewers/`.
-- `odnrewers.pl` obsługuje WordPressa, a `/szkolenia/` panel React.
+- `odnrewers.pl` obsługuje WordPressa; migrację panelu React na `panel.odnrewers.pl` opisuje [PANEL-DOMAIN-PROD.md](PANEL-DOMAIN-PROD.md).
 - `www.odnrewers.pl` przekierowuje na `https://odnrewers.pl`.
 - `rewers.edu.pl` i `www.rewers.edu.pl` przekierowują kodem 301 na `https://odnrewers.pl`, zachowując ścieżkę i parametry. Wyjątek HTTP: wyzwania ACME służące do wydania i odnowienia certyfikatu.
 - Osobny certyfikat w `/etc/letsencrypt/live/odnrewers.pl/` obejmuje `odnrewers.pl` i `www.odnrewers.pl`.

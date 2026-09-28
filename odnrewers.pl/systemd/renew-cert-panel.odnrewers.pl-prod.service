@@ -1,0 +1,13 @@
+[Unit]
+Description=Renew PROD certificate for panel.odnrewers.pl
+Wants=network-online.target
+After=network-online.target docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+User=docker
+Group=docker
+WorkingDirectory=/home/docker/odnrewers
+ExecStart=/bin/sh /home/docker/odnrewers/renew-cert-panel.odnrewers.pl-prod.sh
+TimeoutStartSec=30min

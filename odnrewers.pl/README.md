@@ -20,7 +20,7 @@ Serwer jest przeznaczony do uruchomienia:
 
 - **Reverse proxy Nginx** — obsługa ruchu przychodzącego, certyfikatów HTTPS i kierowanie żądań do aplikacji.
 - **Strony odnrewers.pl w WordPressie** — publiczna strona WWW.
-- **Panelu szkoleniowego React** — aplikacja z projektu `kursypanel`, dostępna pod `/szkolenia/`.
+- **Panelu szkoleniowego React** — aplikacja z projektu `kursypanel`; docelowo pod `https://panel.odnrewers.pl/`.
 
 Usługi będą uruchamiane w kontenerach Docker zarządzanych przez Docker Compose. Najpierw konfiguracja będzie przygotowana i sprawdzona lokalnie, a następnie wdrożona na serwerze.
 
@@ -44,7 +44,7 @@ WordPress ma osobną konfigurację i katalogi danych w `wordpress/`; instrukcja 
 
 Reverse proxy działa na Nginx. Pliki konfiguracyjne Nginx przechowujemy w folderze `nginx/` tego katalogu serwera i podłączamy do kontenera przez bind mount w trybie tylko do odczytu. Konfiguracja pozostaje w repozytorium infrastruktury, poza obrazem kontenera.
 
-Konfiguracje DEV i PROD muszą być wyraźnie rozdzielone. Właściwy plik Compose wskazuje pliki konfiguracyjne odpowiednie dla danego środowiska. Routing DEV dla panelu został zatwierdzony: `http://localhost:8080/szkolenia/`. Routing PROD oraz konfiguracja HTTPS pozostają do ustalenia.
+Konfiguracje DEV i PROD muszą być wyraźnie rozdzielone. Właściwy plik Compose wskazuje pliki konfiguracyjne odpowiednie dla danego środowiska. Routing DEV dla panelu: `http://localhost:8080/szkolenia/`. Routing PROD i migrację ze starego adresu opisuje [PANEL-DOMAIN-PROD.md](PANEL-DOMAIN-PROD.md).
 
 ## Pliki konfiguracji
 
@@ -63,7 +63,7 @@ Konfiguracje DEV i PROD muszą być wyraźnie rozdzielone. Właściwy plik Compo
 Źródła pozostają w linkowanym folderze projektu `kursypanel`. Kontener otrzymuje tylko folder wynikowy buildu przez bind mount. Nie wymaga to kopiowania źródeł do repozytorium ani tworzenia dowiązania w repozytorium: ścieżkę folderu lub istniejącego linku wskazuje `DEV_PANEL_BUILD_DIR`.
 
 1. Przygotuj osobny build DEV w projekcie panelu. Przykładowa lokalizacja wyniku to `D:/GIT/kursypanel/build-dev`.
-2. Build musi zawierać `index.html` i folder `static`, z adresem zasobów `/szkolenia` (ustawienie `PUBLIC_URL` przy budowaniu).
+2. Build musi zawierać `index.html` i folder `static`, z adresem zasobów `/szkolenia` (ustawienie `PUBLIC_URL` przy budowaniu). Przy budowaniu DEV ustaw również `REACT_APP_ROUTER_BASENAME=/szkolenia`, ponieważ produkcyjny build panelu używa `/`.
 3. Podczas budowania ustaw wszystkie właściwe dla DEV zmienne aplikacji, w szczególności `REACT_APP_API_URL` i `REACT_APP_AUTH_URL`. Zwykłe `npm run build` w tym projekcie wczytuje `.env.production`, dlatego nie należy traktować tak powstałych plików jako buildu DEV bez jawnego ustawienia konfiguracji DEV.
 4. Przy budowaniu można wskazać `BUILD_PATH=build-dev`, aby nie nadpisać buildu PROD. Każde środowisko musi mieć osobny katalog wynikowy.
 
