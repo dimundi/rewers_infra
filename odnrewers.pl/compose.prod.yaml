@@ -43,6 +43,8 @@ services:
         bind:
           create_host_path: false
   wordpress:
+    # PROD: PHP 8.3.36, obraz zweryfikowany po poprawkach bezpieczenstwa.
+    image: wordpress:php8.3-apache@sha256:e5a724ec7ad9055f48b2941ac1b674b08e77ed60edb8937a6254fb89ec45ddf7
     restart: unless-stopped
     networks:
       - wordpress_egress

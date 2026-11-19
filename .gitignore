@@ -49,3 +49,6 @@ id_ed25519
 *.swo
 *~
 /odnrewers.pl/deploy-prod.local.bat
+
+# Konfiguracja dostepu SFTP Pikseo PROD
+/odnrewers.pl/sftp-pikseo/

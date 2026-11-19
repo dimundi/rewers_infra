@@ -1,5 +1,115 @@
 # Wysyłka PROD przez SFTP
 
+## Ograniczone konto pikseo — WordPress PROD
+
+Status 17 listopada 2026: konto zainstalowane na `51.68.147.102`. Test tymczasowym
+kluczem potwierdził logowanie SFTP, zapis/zmianę nazwy/usunięcie pliku w `wp-content`,
+odmowę dostępu do `/etc`, `/home/docker`, `wp-config.php` i zapisu w `/wordpress`
+oraz blokadę wykonywania poleceń SSH. Sprawdzono odrzucenie wygasłego klucza.
+Prawa zapisu `.htaccess` potwierdzono bez zmiany treści; plik pozostał identyczny
+z kopią sprzed instalacji. Oba mounty są aktywne i włączone na start systemu;
+nie wykonywano restartu serwera. Klucz testowy i wszystkie pliki testowe usunięto.
+Pozostał wyłącznie klucz developera z terminem opisanym poniżej. Kopia uprawnień
+i `.htaccess`: `/root/pikseo-prod-before-20261117-083300/`.
+
+Katalog `sftp-pikseo/` zawiera skrypt `setup-pikseo-sftp-prod.sh`, konfigurację i klucz publiczny. Katalog jest wykluczony z Gita. To konfiguracja
+do instalacji na hoście Debian, nie w kontenerze. Samo zapisanie tych plików
+nie tworzy konta na serwerze. Klucz publiczny `sftp-pikseo/pikseo-prod.pub` należy do pikseo;
+klucz prywatny pozostaje u developera.
+
+Klucz ma ustawione `expiry-time="20271117230000Z"`: nowe logowania zostaną
+zablokowane 18 listopada 2027 o 00:00 czasu Europe/Warsaw (17 listopada o 23:00 UTC).
+Wygaśnięcie nie rozłącza już otwartych sesji SFTP. Data jest stała, niezależna od
+dnia uruchomienia skryptu. Jeśli konto zostało już zainstalowane, administrator
+musi zmienić prefiks istniejącego wpisu w `/etc/ssh/authorized_keys/pikseo-prod`
+z `restrict` na `restrict,expiry-time="20271117230000Z"`, zachowując klucz.
+Nie wymaga to przeładowania SSH ani ponownego uruchomienia skryptu instalacyjnego.
+
+Konto `pikseo` używa wyłącznie SFTP na porcie 22, bez terminala, tuneli,
+sudo i członkostwa w grupie Docker. W chroot `/srv/sftp-pikseo-prod` widzi
+`/wordpress/wp-content` i `/wordpress/.htaccess`, powiązane przez bind mount
+z `/home/docker/odnrewers/wordpress/prod/www/`. Może zmieniać zawartość `wp-content`
+oraz istniejący `.htaccess`. Pozostałe pliki WordPressa, DEV, panel, `.env.prod`
+i certyfikaty nie są udostępnione przez SFTP. Nie jest instalowany serwer FTP.
+
+**Granica ochrony:** edycja PHP i `.htaccess` pozwala wpływać na działającą stronę.
+Kod PHP działa jako WordPress i może czytać jego konfigurację oraz korzystać z bazy.
+Ograniczenie SFTP nie izoluje developera od danych dostępnych aplikacji.
+
+### Instalacja PROD przez administratora
+
+Prześlij cały katalog `sftp-pikseo/` do `/home/docker/odnrewers/` kontem
+administracyjnym. Sprawdź ich treść przed wykonaniem jako root. Zachowaj otwartą
+sesję administratora do zakończenia testów. Wymagany jest już istniejący zwykły
+plik `.htaccess` i katalog `wp-content` (bez dowiązań na tych dwóch ścieżkach).
+
+```bash
+# PROD — konto administratora z sudo, np. debian
+sudo apt-get install acl
+cd /home/docker/odnrewers
+sudo bash sftp-pikseo/setup-pikseo-sftp-prod.sh
+```
+
+Skrypt odmawia nadpisania istniejącego konta lub swojej wcześniejszej instalacji.
+Zapisuje kopię `.htaccess` i ACL w `/root/pikseo-prod-before-DATA/`, zachowuje
+właścicieli plików i dodaje ACL dla pikseo oraz UID 33 (Apache). Domyślne ACL
+na katalogach umożliwiają współpracę WordPressa i developera przy nowych plikach;
+klient SFTP nie powinien wymuszać prywatnych uprawnień typu 0600.
+Zmiana masek ACL może uaktywnić wcześniej zamaskowane wpisy — administrator
+powinien sprawdzić istniejące niestandardowe ACL przed instalacją.
+
+Dwie jednostki systemd zachowują mounty po restarcie serwera. Skrypt sprawdza
+`sshd -t` i efektywne ograniczenia konta przed przeładowaniem `ssh.service`.
+Nie restartuje Dockera ani aplikacji. Jeżeli test SSH się nie powiedzie, usuwa
+swój fragment konfiguracji i nie przeładowuje SSH; konto, ACL i mounty mogą
+pozostać i wymagają inspekcji. Nie uruchamiaj ponownie skryptu w ciemno.
+Istniejące `AllowUsers`, `AllowGroups`, reguły zależne od adresu klienta lub PAM
+mogą dodatkowo uniemożliwić logowanie — sprawdź je bez osłabiania ograniczeń.
+
+### Testy i dane połączenia PROD
+
+- Protokół: **SFTP**, host: `51.68.147.102`, port: `22`, użytkownik: `pikseo`.
+- Klucz: prywatny klucz developera odpowiadający zapisanemu `.pub`.
+- Katalog początkowy: `/wordpress`. Zweryfikuj odcisk klucza hosta przez administratora.
+- Sprawdź wgranie, odczyt, zmianę nazwy i usunięcie nieszkodliwego pliku testowego
+  w `wp-content`; nie testuj przez wgrywanie wykonywalnego PHP.
+- Sprawdź odmowę dostępu do `/etc`, `/home/docker`, `wp-config.php`, tworzenia
+  plików w `/wordpress` oraz uruchamiania poleceń przez SSH.
+- Zapis `.htaccess` wykonuj bezpośrednio, po kopii zapasowej. Wyłącz dla tego pliku
+  zapis przez plik tymczasowy/zmianę nazwy; bind mount nie pozwala go zastąpić.
+  Nie zmieniaj treści produkcyjnego `.htaccess` tylko w celu testu połączenia.
+
+Administrator sprawdza dodatkowo `id pikseo`, ACL i konfigurację dla rzeczywistego
+IP developera: `sudo sshd -T -C user=pikseo,host=ADRES_KLIENTA,addr=IP_KLIENTA`.
+Potwierdź również, że zwykły dostęp administratora nadal działa. Testy z prywatnym
+kluczem developera pozostają po jego stronie; test konta wykonano tymczasowym kluczem.
+
+Jeżeli administrator lub WordPress zastąpi `.htaccess` nowym plikiem, mount nadal
+wskazuje stary plik. Ponownie nadaj `sudo setfacl -m u:pikseo:rw- /home/docker/odnrewers/wordpress/prod/www/.htaccess`
+i zrestartuj jednostkę mount wyznaczoną przez
+`systemd-escape --path --suffix=mount /srv/sftp-pikseo-prod/wordpress/.htaccess`.
+Po odtworzeniu całego `wp-content` trzeba również odnowić mount i ACL.
+
+### Odebranie dostępu PROD
+
+```bash
+# PROD — usuń autoryzację i zakończ istniejące sesje tego konta.
+sudo rm -f /etc/ssh/authorized_keys/pikseo-prod
+sudo pkill -KILL -u pikseo
+```
+
+Brak procesów może dać kod 1 z `pkill`. Samo zablokowanie hasła przez `passwd -l`
+nie odbiera logowania kluczem. Pozostaw ograniczenie `Match User pikseo` do czasu
+usunięcia konta. Pełne sprzątanie wykonuj po zakończeniu sesji: wyłącz obie jednostki
+mount (`systemctl disable --now` z nazwami uzyskanymi przez `systemd-escape`),
+usuń wpisy ACL użytkownika pikseo i konto przez `userdel pikseo` **bez `-r`**.
+Nie usuwaj rekurencyjnie katalogu chroot, dopóki są w nim mounty WordPressa.
+Kopia ACL umożliwia odtworzenie poprzednich praw przez `setfacl --restore`, ale
+nadpisuje również późniejsze zmiany uprawnień — używaj jej po ocenie zmian.
+
+Mechanizmy: [OpenSSH sshd_config](https://man.openbsd.org/sshd_config)
+i [internal-sftp / sftp-server](https://man.openbsd.org/sftp-server).
+
 Przeniesienie panelu na `panel.odnrewers.pl` i przekierowanie starych adresów
 `/szkolenia/` opisuje [PANEL-DOMAIN-PROD.md](PANEL-DOMAIN-PROD.md).
 
